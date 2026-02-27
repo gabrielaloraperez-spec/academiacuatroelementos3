@@ -1,87 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { levels, abilities, SCORING, Level, Ability, achievements, Achievement } from '../data/gameData';
-
-interface LevelStats {
-  correct: number;
-  incorrect: number;
-  accuracy: number;
-  mastery: number;
-}
-
-interface GameState {
-  currentLevel: number;
-  lives: number;
-  score: number;
-  mana: number;
-  streak: number;
-  maxStreak: number;
-  unlockedLevels: number[];
-  abilityUses: { [key: string]: number };
-  highScores: { [key: number]: number };
-  isBossUnlocked: boolean;
-  playerName: string;
-  avatar: string;
-  achievements: string[];
-  knowledgeRoomsCompleted: number;
-  levelStats: { [key: number]: LevelStats };
-  operationMastery: { [key: string]: number };
-  totalQuestionsAnswered: number;
-  totalCorrect: number;
-  currentLevelCorrect: number;
-  currentLevelIncorrect: number;
-}
-
-interface GameContextType {
-  state: GameState;
-  startLevel: (levelId: number) => void;
-  answerQuestion: (isCorrect: boolean, isBoss?: boolean) => void;
-  useAbility: (abilityId: string) => boolean;
-  resetLevel: () => void;
-  completeLevel: (levelId: number, wasPerfect: boolean) => void;
-  completeBoss: (timeRemaining: number) => void;
-  completeKnowledgeRoom: () => void;
-  setPlayerInfo: (name: string, avatar: string) => void;
-  getCurrentLevelData: () => Level | null;
-  getAbilityData: (abilityId: string) => Ability | undefined;
-  getLevelStats: (levelId: number) => LevelStats;
-  getOverallProgress: () => { completed: number; total: number; percentage: number };
-  getOperationMastery: (operation: string) => number;
-}
-
-const initialState: GameState = {
-  currentLevel: 0,
-  lives: 3,
-  score: 0,
-  mana: 100,
-  streak: 0,
-  maxStreak: 0,
-  unlockedLevels: [1],
-  abilityUses: {
-    shield: 3,
-    recharge: 2,
-    multiplier: 5,
-    extratime: 3
-  },
-  highScores: {},
-  isBossUnlocked: false,
-  playerName: "",
-  avatar: "",
-  achievements: [],
-  knowledgeRoomsCompleted: 0,
-  levelStats: {},
-  operationMastery: {
-    addition: 0,
-    subtraction: 0,
-    multiplication: 0,
-    division: 0
-  },
-  totalQuestionsAnswered: 0,
-  totalCorrect: 0,
-  currentLevelCorrect: 0,
-  currentLevelIncorrect: 0
-};
-
-const GameContext = createContext<GameContextType | undefined>(undefined);
+import React, { useState, useEffect, ReactNode } from 'react';
+import { levels, abilities, SCORING } from '../data/gameData';
+import { GameContext, GameState, initialState } from './gameConstants';
 
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<GameState>(() => {
@@ -96,25 +15,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const checkAchievements = (newState: GameState) => {
     const newAchievements: string[] = [...newState.achievements];
 
-    // First level completed
     if (newState.unlockedLevels.length >= 2 && !newAchievements.includes('first_level')) {
       newAchievements.push('first_level');
     }
-
-    // Streak achievements
     if (newState.streak >= 5 && !newAchievements.includes('streak_5')) {
       newAchievements.push('streak_5');
     }
     if (newState.streak >= 10 && !newAchievements.includes('streak_10')) {
       newAchievements.push('streak_10');
     }
-
-    // Knowledge rooms
     if (newState.knowledgeRoomsCompleted >= 4 && !newAchievements.includes('all_knowledge')) {
       newAchievements.push('all_knowledge');
     }
-
-    // Boss completed
     if (!newState.isBossUnlocked && newState.unlockedLevels.includes(5) && !newAchievements.includes('boss_killer')) {
       newAchievements.push('boss_killer');
     }
@@ -136,7 +48,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
-  const answerQuestion = (isCorrect: boolean, isBoss: boolean = false) => {
+  const answerQuestion = (isCorrect: boolean, isBoss: boolean = false, scoreMultiplier: number = 1) => {
     setState(prev => {
       let newMana = prev.mana;
       let newStreak = prev.streak;
@@ -150,7 +62,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         newStreak += 1;
         newMaxStreak = Math.max(newMaxStreak, newStreak);
         const streakBonus = Math.min(newStreak * SCORING.STREAK_BONUS, SCORING.STREAK_MAX);
-        scoreGain = SCORING.CORRECT_ANSWER + streakBonus;
+        scoreGain = (SCORING.CORRECT_ANSWER + streakBonus) * Math.max(1, scoreMultiplier);
         newMana += 10;
         newCurrentLevelCorrect += 1;
       } else {
@@ -211,14 +123,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const total = state.currentLevelCorrect + state.currentLevelIncorrect;
     const accuracy = total > 0 ? Math.round((state.currentLevelCorrect / total) * 100) : 0;
-
-    // Calculate mastery based on accuracy and streak
     const mastery = Math.min(100, accuracy + (wasPerfect ? 20 : 0));
 
     setState(prev => {
       const newUnlockedLevels = [...new Set([...prev.unlockedLevels, levelId + 1])];
-
-      // Unlock boss after level 4
       if (levelId === 4) {
         newUnlockedLevels.push(5);
       }
@@ -243,14 +151,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         [level.operation]: Math.max(prev.operationMastery[level.operation] || 0, mastery)
       };
 
-      let newAchievements = [...prev.achievements];
+      const newAchievements = [...prev.achievements];
 
-      // Perfect level achievement
       if (wasPerfect && !newAchievements.includes('perfect_level')) {
         newAchievements.push('perfect_level');
       }
 
-      // Check for operation mastery achievements
       if (mastery >= 100) {
         if (level.operation === 'addition' && !newAchievements.includes('addition_master')) {
           newAchievements.push('addition_master');
@@ -284,9 +190,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const completeBoss = (timeRemaining: number = 0) => {
     setState(prev => {
-      let newAchievements = [...prev.achievements];
+      const newAchievements = [...prev.achievements];
 
-      // Speed demon achievement
       if (timeRemaining >= 60 && !newAchievements.includes('speed_demon')) {
         newAchievements.push('speed_demon');
       }
@@ -316,22 +221,22 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
-  const getCurrentLevelData = (): Level | null => {
+  const getCurrentLevelData = () => {
     if (state.currentLevel === 0) return null;
     return levels.find(l => l.id === state.currentLevel) || null;
   };
 
-  const getAbilityData = (abilityId: string): Ability | undefined => {
+  const getAbilityData = (abilityId: string) => {
     return abilities.find(a => a.id === abilityId);
   };
 
-  const getLevelStats = (levelId: number): LevelStats => {
+  const getLevelStats = (levelId: number) => {
     return state.levelStats[levelId] || { correct: 0, incorrect: 0, accuracy: 0, mastery: 0 };
   };
 
   const getOverallProgress = () => {
     const completed = state.unlockedLevels.length - 1;
-    const total = 4; // 4 main levels + boss
+    const total = 4;
     const percentage = Math.round((completed / total) * 100);
     return { completed, total, percentage };
   };
@@ -360,12 +265,4 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       {children}
     </GameContext.Provider>
   );
-};
-
-export const useGame = (): GameContextType => {
-  const context = useContext(GameContext);
-  if (!context) {
-    throw new Error('useGame must be used within a GameProvider');
-  }
-  return context;
 };

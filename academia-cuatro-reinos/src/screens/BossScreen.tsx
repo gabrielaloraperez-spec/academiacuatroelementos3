@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useGame } from '../context/GameContext';
+import React, { useState, useEffect } from 'react';
+import { useGame } from '../context/useGame';
 import { bossProblems, Problem } from '../data/gameData';
 import { ProgressBar, Hearts, ScoreDisplay, AnswerButton, Feedback, AbilityButton } from '../components/GameComponents';
 
@@ -11,7 +11,7 @@ interface BossScreenProps {
 const BOSS_TIME = 120; // seconds
 
 export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }) => {
-  const { state, answerQuestion, useAbility, getAbilityData } = useGame();
+  const { state, answerQuestion, useAbility: activateAbility, getAbilityData } = useGame();
   const [currentProblem, setCurrentProblem] = useState(0);
   const [timeLeft, setTimeLeft] = useState(BOSS_TIME);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
@@ -58,12 +58,11 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
 
     if (isCorrect) {
       setFeedback('correct');
-      let points = 100;
+      const scoreMultiplier = multiplierActive ? 2 : 1;
       if (multiplierActive) {
-        points *= 2;
         setMultiplierActive(false);
       }
-      answerQuestion(true, true);
+      answerQuestion(true, true, scoreMultiplier);
     } else {
       if (shieldActive) {
         setShieldActive(false);
@@ -88,7 +87,7 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
   };
 
   const handleUseAbility = (abilityId: string) => {
-    const success = useAbility(abilityId);
+    const success = activateAbility(abilityId);
     if (success) {
       if (abilityId === 'multiplier') {
         setMultiplierActive(true);
