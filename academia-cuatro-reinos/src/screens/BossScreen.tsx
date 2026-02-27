@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useGame } from '../context/GameContext';
+import React, { useState, useEffect } from 'react';
+import { useGame } from '../context/useGame';
 import { bossProblems, Problem } from '../data/gameData';
-import { ProgressBar, Hearts, ScoreDisplay, AnswerButton, Feedback, AbilityButton } from '../components/GameComponents';
+import { ProgressBar, Hearts, ScoreDisplay, AnswerButton, Feedback, AbilityButton, HintDisplay } from '../components/GameComponents';
 
 interface BossScreenProps {
   onComplete: () => void;
@@ -11,7 +11,7 @@ interface BossScreenProps {
 const BOSS_TIME = 120; // seconds
 
 export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }) => {
-  const { state, answerQuestion, useAbility, getAbilityData } = useGame();
+  const { state, answerQuestion, useAbility: activateAbility, getAbilityData } = useGame();
   const [currentProblem, setCurrentProblem] = useState(0);
   const [timeLeft, setTimeLeft] = useState(BOSS_TIME);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
@@ -19,6 +19,7 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
   const [multiplierActive, setMultiplierActive] = useState(false);
   const [shieldActive, setShieldActive] = useState(false);
   const [timeFrozen, setTimeFrozen] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   const problem = bossProblems[currentProblem];
   const isComplete = currentProblem >= bossProblems.length;
@@ -58,19 +59,24 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
 
     if (isCorrect) {
       setFeedback('correct');
-      let points = 100;
+      setShowHint(false);
+      const scoreMultiplier = multiplierActive ? 2 : 1;
       if (multiplierActive) {
-        points *= 2;
         setMultiplierActive(false);
       }
-      answerQuestion(true, true);
+      answerQuestion(true, true, scoreMultiplier);
     } else {
       if (shieldActive) {
         setShieldActive(false);
         setFeedback('correct');
+        setShowHint(false);
         answerQuestion(true, true);
       } else {
         setFeedback('incorrect');
+        // Show hint after incorrect answer if available
+        if (problem.hint) {
+          setShowHint(true);
+        }
         answerQuestion(false, true);
       }
     }
@@ -78,6 +84,7 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
     setTimeout(() => {
       setFeedback(null);
       setSelectedAnswer(null);
+      setShowHint(false);
 
       if (currentProblem < bossProblems.length - 1) {
         setCurrentProblem(prev => prev + 1);
@@ -88,7 +95,7 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
   };
 
   const handleUseAbility = (abilityId: string) => {
-    const success = useAbility(abilityId);
+    const success = activateAbility(abilityId);
     if (success) {
       if (abilityId === 'multiplier') {
         setMultiplierActive(true);
@@ -204,6 +211,13 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <div className="bg-white/95 backdrop-blur rounded-3xl p-8 shadow-2xl text-center">
+            {/* Hint Display */}
+            {showHint && problem.hint && (
+              <div className="mb-6">
+                <HintDisplay hint={problem.hint} />
+              </div>
+            )}
+
             <div className="text-5xl font-bold text-gray-800 mb-8">
               {problem.question}
             </div>

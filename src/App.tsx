@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { GameProvider, useGame } from './context/GameContext';
+import { GameProvider } from './context/GameContext';
+import { useGame } from './context/useGame';
 import {
   WelcomeScreen,
   MapScreen,
@@ -99,7 +100,7 @@ const GameApp: React.FC = () => {
           />
         );
 
-      case 'level':
+      case 'level': {
         const level = getCurrentLevel();
         if (!level) return <WelcomeScreen />;
         return (
@@ -107,10 +108,15 @@ const GameApp: React.FC = () => {
             level={level}
             onComplete={handleLevelComplete}
             onKnowledge={() => setCurrentScreen('knowledge')}
+            onExitToMap={() => {
+              resetLevel();
+              setCurrentScreen('map');
+            }}
           />
         );
+      }
 
-      case 'knowledge':
+      case 'knowledge': {
         const knowledgeLevel = getCurrentLevel();
         if (!knowledgeLevel) return <WelcomeScreen />;
         return (
@@ -119,6 +125,7 @@ const GameApp: React.FC = () => {
             onComplete={handleKnowledgeComplete}
           />
         );
+      }
 
       case 'boss':
         return (

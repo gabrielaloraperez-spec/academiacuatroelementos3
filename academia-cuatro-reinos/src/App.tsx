@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { GameProvider, useGame } from './context/GameContext';
+import { GameProvider } from './context/GameContext';
+import { useGame } from './context/useGame';
 import {
   WelcomeScreen,
   MapScreen,
@@ -31,8 +32,8 @@ const GameApp: React.FC = () => {
     setCurrentScreen('level');
   };
 
-  const handleLevelComplete = () => {
-    completeLevel(currentLevelId);
+  const handleLevelComplete = (wasPerfect: boolean = false) => {
+    completeLevel(currentLevelId, wasPerfect);
     // Check if all 4 levels are complete to unlock boss
     if (currentLevelId === 4) {
       // This was the last level - boss unlocked
@@ -57,8 +58,8 @@ const GameApp: React.FC = () => {
     setCurrentScreen('boss');
   };
 
-  const handleBossComplete = () => {
-    completeBoss();
+  const handleBossComplete = (timeRemaining: number = 0) => {
+    completeBoss(timeRemaining);
     setCurrentScreen('map');
   };
 
@@ -99,7 +100,7 @@ const GameApp: React.FC = () => {
           />
         );
 
-      case 'level':
+      case 'level': {
         const level = getCurrentLevel();
         if (!level) return <WelcomeScreen />;
         return (
@@ -107,10 +108,15 @@ const GameApp: React.FC = () => {
             level={level}
             onComplete={handleLevelComplete}
             onKnowledge={() => setCurrentScreen('knowledge')}
+            onExitToMap={() => {
+              resetLevel();
+              setCurrentScreen('map');
+            }}
           />
         );
+      }
 
-      case 'knowledge':
+      case 'knowledge': {
         const knowledgeLevel = getCurrentLevel();
         if (!knowledgeLevel) return <WelcomeScreen />;
         return (
@@ -119,6 +125,7 @@ const GameApp: React.FC = () => {
             onComplete={handleKnowledgeComplete}
           />
         );
+      }
 
       case 'boss':
         return (
