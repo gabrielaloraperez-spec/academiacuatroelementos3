@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useGame } from '../context/useGame';
-import { Level } from '../data/gameData';
+import { Level, Problem } from '../data/gameData';
 import { ProgressBar, Hearts, ScoreDisplay, AnswerButton, Feedback, AbilityButton, HintDisplay } from '../components/GameComponents';
 
 interface LevelScreenProps {
@@ -18,6 +18,11 @@ interface SublevelConfig {
   flavor: string;
 }
 
+type LevelPhase = 'sublevels' | 'master' | 'knowledge';
+type TransitionKind = 'sublevel' | 'master' | 'knowledge';
+
+const MASTER_TIME = 60;
+
 const elementByOperation: Record<string, string> = {
   addition: 'Aire',
   subtraction: 'Agua',
@@ -34,14 +39,18 @@ const accentByOperation: Record<string, string> = {
 
 export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onExitToMap }) => {
   const { state, answerQuestion, useAbility: activateAbility, getAbilityData, resetLevel } = useGame();
+  const [phase, setPhase] = useState<LevelPhase>('sublevels');
+  const [transitionKind, setTransitionKind] = useState<TransitionKind>('sublevel');
   const [currentProblem, setCurrentProblem] = useState(0);
   const [currentSublevel, setCurrentSublevel] = useState(0);
+  const [masterProblemIndex, setMasterProblemIndex] = useState(0);
+  const [masterTimeLeft, setMasterTimeLeft] = useState(MASTER_TIME);
   const [showTransition, setShowTransition] = useState(true);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [multiplierActive, setMultiplierActive] = useState(false);
   const [shieldActive, setShieldActive] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const [gameOverConfig, setGameOverConfig] = useState<{ message: string; action: 'map' | 'retry-sublevel'; button: string } | null>(null);
+  const [gameOverConfig, setGameOverConfig] = useState<{ message: string; action: 'map' | 'retry-sublevel' | 'retry-master'; button: string } | null>(null);
 
   const sublevels: SublevelConfig[] = useMemo(() => [
     { id: 1, start: 0, end: 2, objective: `Realizar ${level.operationSpanish.toLowerCase()} de 1 cifra.`, flavor: 'Domina la brisa fresca.' },
@@ -49,8 +58,34 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
     { id: 3, start: 6, end: 9, objective: `Realizar ${level.operationSpanish.toLowerCase()} de 3 cifras.`, flavor: 'Canaliza tu energía de maestro.' },
   ], [level.operationSpanish]);
 
-  const problem = level.problems[currentProblem];
+  const masterProblems: Problem[] = useMemo(() => {
+    const indexes = [0, 3, 6, 9, 2];
+    return indexes.map((index, i) => ({ ...level.problems[index], id: i + 1 }));
+  }, [level.problems]);
+
   const sublevel = sublevels[currentSublevel];
+  const activeProblem = phase === 'master' ? masterProblems[masterProblemIndex] : level.problems[currentProblem];
+
+  useEffect(() => {
+    if (phase !== 'master' || showTransition || gameOverConfig || masterTimeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setMasterTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setGameOverConfig({
+            message: 'El maestro oscuro ha desviado tu concentración. Respira, reajusta tu estrategia y vuelve a desafiarlo.',
+            action: 'retry-master',
+            button: 'Reiniciar subnivel maestro',
+          });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [phase, showTransition, gameOverConfig, masterTimeLeft]);
 
   const handleSublevelFailure = () => {
     if (sublevel.id === 1) {
@@ -87,19 +122,31 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
     }
 
     resetLevel();
-    setCurrentProblem(sublevel.start);
-    setShowTransition(true);
     setMultiplierActive(false);
     setShieldActive(false);
     setShowHint(false);
     setFeedback(null);
     setGameOverConfig(null);
+
+    if (gameOverConfig.action === 'retry-master') {
+      setPhase('master');
+      setTransitionKind('master');
+      setMasterProblemIndex(0);
+      setMasterTimeLeft(MASTER_TIME);
+      setShowTransition(true);
+      return;
+    }
+
+    setPhase('sublevels');
+    setTransitionKind('sublevel');
+    setCurrentProblem(sublevel.start);
+    setShowTransition(true);
   };
 
   const handleAnswer = (answer: number) => {
-    if (feedback !== null || !problem) return;
+    if (feedback !== null || !activeProblem) return;
 
-    const isCorrect = answer === problem.answer;
+    const isCorrect = answer === activeProblem.answer;
     const willLoseAllLives = !isCorrect && !shieldActive && state.lives <= 1;
 
     if (isCorrect) {
@@ -117,7 +164,7 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
       answerQuestion(true);
     } else {
       setFeedback('incorrect');
-      if (problem.hint) {
+      if (activeProblem.hint) {
         setShowHint(true);
       }
       answerQuestion(false);
@@ -128,26 +175,53 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
       setShowHint(false);
 
       if (willLoseAllLives) {
-        handleSublevelFailure();
+        if (phase === 'master') {
+          setGameOverConfig({
+            message: 'El maestro oscuro ha quebrado tus defensas. Reúne tu energía y desafíalo nuevamente.',
+            action: 'retry-master',
+            button: 'Reiniciar subnivel maestro',
+          });
+        } else {
+          handleSublevelFailure();
+        }
         return;
       }
 
-      if (currentProblem < sublevel.end) {
-        setCurrentProblem(prev => prev + 1);
-        return;
-      }
+      if (phase === 'sublevels') {
+        if (currentProblem < sublevel.end) {
+          setCurrentProblem((prev) => prev + 1);
+          return;
+        }
 
-      if (currentSublevel < sublevels.length - 1) {
-        const nextSublevel = currentSublevel + 1;
-        setCurrentSublevel(nextSublevel);
-        setCurrentProblem(sublevels[nextSublevel].start);
+        if (currentSublevel < sublevels.length - 1) {
+          const nextSublevel = currentSublevel + 1;
+          setCurrentSublevel(nextSublevel);
+          setCurrentProblem(sublevels[nextSublevel].start);
+          setTransitionKind('sublevel');
+          setShowTransition(true);
+          setMultiplierActive(false);
+          setShieldActive(false);
+          return;
+        }
+
+        setPhase('master');
+        setTransitionKind('master');
+        setMasterProblemIndex(0);
+        setMasterTimeLeft(MASTER_TIME);
         setShowTransition(true);
         setMultiplierActive(false);
         setShieldActive(false);
         return;
       }
 
-      onComplete();
+      if (masterProblemIndex < masterProblems.length - 1) {
+        setMasterProblemIndex((prev) => prev + 1);
+        return;
+      }
+
+      setPhase('knowledge');
+      setTransitionKind('knowledge');
+      setShowTransition(true);
     }, 1200);
   };
 
@@ -160,6 +234,12 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
         setShieldActive(true);
       }
     }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   if (gameOverConfig) {
@@ -182,6 +262,47 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
   }
 
   if (showTransition) {
+    if (transitionKind === 'knowledge') {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: level.bgColor }}>
+          <div className="max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-white">
+            <div className="text-6xl mb-4">📜</div>
+            <h2 className="text-3xl font-bold mb-4" style={{ color: level.color }}>Victoria del Reino</h2>
+            <p className="text-lg text-gray-700 font-medium">
+              has superado todos los desafíos; el conocimiento sobre los sistemas de numeración te será revelado.
+            </p>
+            <button
+              onClick={onComplete}
+              className="mt-6 px-8 py-3 rounded-xl text-white font-bold"
+              style={{ backgroundColor: level.color }}
+            >
+              Entrar a la sala del conocimiento
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (transitionKind === 'master') {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: level.bgColor }}>
+          <div className={`max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-gradient-to-br ${accentByOperation[level.operation] || 'from-slate-100 to-slate-200 text-slate-900'}`}>
+            <div className="text-6xl mb-4">🕶️</div>
+            <h2 className="text-3xl font-bold mb-2">Subnivel Maestro</h2>
+            <p className="font-semibold mb-4">El maestro oscuro de {elementByOperation[level.operation] || 'este reino'} emerge desde las sombras.</p>
+            <p className="text-sm opacity-90">En este reto final deberás resolver ejercicios misceláneos de todo el reino antes de que el tiempo se agote.</p>
+            <div className="mt-4 text-lg font-bold">⏳ Tiempo límite: {MASTER_TIME}s</div>
+            <button
+              onClick={() => setShowTransition(false)}
+              className="mt-6 px-8 py-3 rounded-xl bg-white/90 text-slate-900 font-bold hover:scale-105 transition"
+            >
+              Enfrentar al maestro oscuro
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: level.bgColor }}>
         <div className={`max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-gradient-to-br ${accentByOperation[level.operation] || 'from-slate-100 to-slate-200 text-slate-900'}`}>
@@ -201,24 +322,36 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
     );
   }
 
+  const progressCurrent = phase === 'master' ? masterProblemIndex + 1 : currentProblem + 1;
+  const progressTotal = phase === 'master' ? masterProblems.length : level.problems.length;
+
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: level.bgColor }}>
       <div className="p-4">
         <div className="max-w-md mx-auto">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="text-3xl">{level.icon}</span>
-              <span className="font-bold" style={{ color: level.color }}>{level.name}</span>
+              <span className="text-3xl">{phase === 'master' ? '🕶️' : level.icon}</span>
+              <span className="font-bold" style={{ color: level.color }}>{phase === 'master' ? `${level.name} · Subnivel Maestro` : level.name}</span>
             </div>
             <Hearts lives={state.lives} />
           </div>
 
-          <ProgressBar current={currentProblem + 1} total={level.problems.length} color={level.color} />
+          {phase === 'master' && (
+            <div className="mb-3 rounded-xl bg-slate-900/85 text-white px-4 py-2 flex items-center justify-between">
+              <span className="text-sm font-semibold">⏳ Tiempo del maestro oscuro</span>
+              <span className="font-bold">{formatTime(masterTimeLeft)}</span>
+            </div>
+          )}
+
+          <ProgressBar current={progressCurrent} total={progressTotal} color={level.color} />
 
           <div className="flex justify-between items-center mt-4">
             <ScoreDisplay score={state.score} streak={state.streak} />
             <div className="text-sm font-medium" style={{ color: level.color }}>
-              Subnivel {sublevel.id} · Pregunta {currentProblem + 1}/{level.problems.length}
+              {phase === 'master'
+                ? `Maestro · Ejercicio ${masterProblemIndex + 1}/${masterProblems.length}`
+                : `Subnivel ${sublevel.id} · Pregunta ${currentProblem + 1}/${level.problems.length}`}
             </div>
           </div>
         </div>
@@ -243,16 +376,16 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-3xl p-8 shadow-xl text-center">
-            {showHint && problem?.hint && (
+            {showHint && activeProblem?.hint && (
               <div className="mb-6">
-                <HintDisplay hint={problem.hint} />
+                <HintDisplay hint={activeProblem.hint} />
               </div>
             )}
 
-            <div className="text-6xl font-bold text-gray-800 mb-8">{problem?.question}</div>
+            <div className="text-6xl font-bold text-gray-800 mb-8">{activeProblem?.question}</div>
 
             <div className="grid grid-cols-2 gap-4">
-              {problem?.options.map((option, index) => (
+              {activeProblem?.options.map((option, index) => (
                 <AnswerButton
                   key={index}
                   value={option}
@@ -292,7 +425,7 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
       {feedback && (
         <Feedback
           type={feedback}
-          message={feedback === 'incorrect' ? `La respuesta era ${problem?.answer}` : undefined}
+          message={feedback === 'incorrect' ? `La respuesta era ${activeProblem?.answer}` : undefined}
         />
       )}
     </div>
