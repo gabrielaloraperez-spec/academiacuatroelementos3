@@ -16,6 +16,11 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+      },
       manifest: {
         name: 'Academia Cuatro Reinos',
         short_name: '4Reinos',
@@ -26,12 +31,12 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/pwa-192.png',
+            src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/pwa-512.png',
+            src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png'
           }

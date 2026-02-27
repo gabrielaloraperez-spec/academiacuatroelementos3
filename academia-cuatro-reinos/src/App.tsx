@@ -32,8 +32,8 @@ const GameApp: React.FC = () => {
     setCurrentScreen('level');
   };
 
-  const handleLevelComplete = () => {
-    completeLevel(currentLevelId);
+  const handleLevelComplete = (wasPerfect: boolean = false) => {
+    completeLevel(currentLevelId, wasPerfect);
     // Check if all 4 levels are complete to unlock boss
     if (currentLevelId === 4) {
       // This was the last level - boss unlocked
@@ -58,8 +58,8 @@ const GameApp: React.FC = () => {
     setCurrentScreen('boss');
   };
 
-  const handleBossComplete = () => {
-    completeBoss();
+  const handleBossComplete = (timeRemaining: number = 0) => {
+    completeBoss(timeRemaining);
     setCurrentScreen('map');
   };
 

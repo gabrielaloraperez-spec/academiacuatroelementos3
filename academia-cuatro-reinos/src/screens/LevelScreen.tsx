@@ -179,6 +179,70 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onK
     );
   }
 
+  if (showTransition) {
+    if (transitionKind === 'knowledge') {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: level.bgColor }}>
+          <div className="max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-white">
+            <div className="text-6xl mb-4">📜</div>
+            <h2 className="text-3xl font-bold mb-4" style={{ color: level.color }}>Victoria del Reino</h2>
+            <p className="text-lg text-gray-700 font-medium">
+              has superado todos los desafíos; el conocimiento sobre los sistemas de numeración te será revelado.
+            </p>
+            <button
+              onClick={onComplete}
+              className="mt-6 px-8 py-3 rounded-xl text-white font-bold"
+              style={{ backgroundColor: level.color }}
+            >
+              Entrar a la sala del conocimiento
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (transitionKind === 'master') {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: level.bgColor }}>
+          <div className={`max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-gradient-to-br ${accentByOperation[level.operation] || 'from-slate-100 to-slate-200 text-slate-900'}`}>
+            <div className="text-6xl mb-4">🕶️</div>
+            <h2 className="text-3xl font-bold mb-2">Subnivel Maestro</h2>
+            <p className="font-semibold mb-4">El maestro oscuro de {elementByOperation[level.operation] || 'este reino'} emerge desde las sombras.</p>
+            <p className="text-sm opacity-90">En este reto final deberás resolver ejercicios misceláneos de todo el reino antes de que el tiempo se agote.</p>
+            <div className="mt-4 text-lg font-bold">⏳ Tiempo límite: {MASTER_TIME}s</div>
+            <button
+              onClick={() => setShowTransition(false)}
+              className="mt-6 px-8 py-3 rounded-xl bg-white/90 text-slate-900 font-bold hover:scale-105 transition"
+            >
+              Enfrentar al maestro oscuro
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: level.bgColor }}>
+        <div className={`max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-gradient-to-br ${accentByOperation[level.operation] || 'from-slate-100 to-slate-200 text-slate-900'}`}>
+          <div className="text-6xl mb-4">{level.icon}</div>
+          <h2 className="text-3xl font-bold mb-1">{level.name}</h2>
+          <p className="font-semibold mb-4">{elementByOperation[level.operation] || 'Elemento'} · Subnivel {sublevel.id}</p>
+          <p className="text-lg font-bold">Objetivo: {sublevel.objective}</p>
+          <p className="mt-2 opacity-90">{sublevel.flavor}</p>
+          <button
+            onClick={() => setShowTransition(false)}
+            className="mt-6 px-8 py-3 rounded-xl bg-white/90 text-slate-900 font-bold hover:scale-105 transition"
+          >
+            Comenzar subnivel {sublevel.id}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const progressCurrent = phase === 'master' ? masterProblemIndex + 1 : currentProblem + 1;
+  const progressTotal = phase === 'master' ? masterProblems.length : level.problems.length;
+
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: level.bgColor }}>
       <div className="p-4">
