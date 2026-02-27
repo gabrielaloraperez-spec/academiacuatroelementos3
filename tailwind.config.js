@@ -96,7 +96,6 @@ module.exports = {
 				'flare-fire': 'flare-fire 1.1s ease-in-out infinite',
 				'rumble-earth': 'rumble-earth 0.6s ease-in-out infinite',
 				'pulse-time': 'pulse-time 2s ease-in-out infinite',
-				'bounce-slow': 'bounce 4s infinite alternate',
 			},
 		},
 	},

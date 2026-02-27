@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/useGame';
 import { Level } from '../data/gameData';
 import { ProgressBar, Hearts, ScoreDisplay, AnswerButton, Feedback, AbilityButton, HintDisplay } from '../components/GameComponents';
@@ -10,30 +10,8 @@ interface LevelScreenProps {
   onExitToMap: () => void;
 }
 
-interface SublevelConfig {
-  id: 1 | 2 | 3;
-  start: number;
-  end: number;
-  objective: string;
-  flavor: string;
-}
-
-const elementByOperation: Record<string, string> = {
-  addition: 'Aire',
-  subtraction: 'Agua',
-  multiplication: 'Fuego',
-  division: 'Tierra',
-};
-
-const accentByOperation: Record<string, string> = {
-  addition: 'from-sky-200 to-cyan-100 text-sky-900',
-  subtraction: 'from-blue-900 to-cyan-700 text-cyan-100',
-  multiplication: 'from-orange-500 to-amber-400 text-amber-50',
-  division: 'from-emerald-900 to-lime-800 text-lime-100',
-};
-
-export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onExitToMap }) => {
-  const { state, answerQuestion, useAbility: activateAbility, getAbilityData, resetLevel } = useGame();
+export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onKnowledge }) => {
+  const { state, answerQuestion, useAbility: activateAbility, getAbilityData } = useGame();
   const [currentProblem, setCurrentProblem] = useState(0);
   const [currentSublevel, setCurrentSublevel] = useState(0);
   const [showTransition, setShowTransition] = useState(true);
