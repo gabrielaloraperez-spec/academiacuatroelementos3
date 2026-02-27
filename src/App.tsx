@@ -7,11 +7,12 @@ import {
   LevelScreen,
   KnowledgeRoom,
   BossScreen,
-  GameOverScreen
+  GameOverScreen,
+  DomainChallengeScreen
 } from './screens';
 import { levels } from './data/gameData';
 
-type Screen = 'welcome' | 'map' | 'level' | 'knowledge' | 'boss' | 'gameover';
+type Screen = 'welcome' | 'map' | 'level' | 'domain_challenge' | 'knowledge' | 'boss' | 'gameover';
 
 const GameApp: React.FC = () => {
   const { state, startLevel, completeLevel, completeBoss, resetLevel } = useGame();
@@ -37,11 +38,16 @@ const GameApp: React.FC = () => {
     // Check if all 4 levels are complete to unlock boss
     if (currentLevelId === 4) {
       // This was the last level - boss unlocked
-      // For now, go to map
       setCurrentScreen('map');
-    } else {
-      setCurrentScreen('knowledge');
+      return;
     }
+
+    if (currentLevelId === 3) {
+      setCurrentScreen('domain_challenge');
+      return;
+    }
+
+    setCurrentScreen('knowledge');
   };
 
   const handleKnowledgeComplete = () => {
@@ -115,6 +121,14 @@ const GameApp: React.FC = () => {
           />
         );
       }
+
+
+      case 'domain_challenge':
+        return (
+          <DomainChallengeScreen
+            onComplete={() => setCurrentScreen('knowledge')}
+          />
+        );
 
       case 'knowledge': {
         const knowledgeLevel = getCurrentLevel();
