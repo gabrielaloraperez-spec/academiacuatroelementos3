@@ -1,9 +1,7 @@
 import React from 'react';
 import { useGame } from '../context/useGame';
-import { levels, achievements as allAchievements } from '../data/gameData';
-import { AchievementBadge } from '../components/GameComponents';
-import { KingdomCard } from '../components/kingdom/KingdomCard';
-import { TimeTower } from '../components/kingdom/TimeTower';
+import { levels } from '../data/gameData';
+import { LevelCard } from '../components/GameComponents';
 
 interface MapScreenProps {
   onLevelSelect: (levelId: number) => void;

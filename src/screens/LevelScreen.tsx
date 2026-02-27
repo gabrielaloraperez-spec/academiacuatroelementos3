@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/useGame';
-import { Level, Problem } from '../data/gameData';
+import { Level } from '../data/gameData';
 import { ProgressBar, Hearts, ScoreDisplay, AnswerButton, Feedback, AbilityButton, HintDisplay } from '../components/GameComponents';
 
 interface LevelScreenProps {
@@ -10,47 +10,16 @@ interface LevelScreenProps {
   onExitToMap: () => void;
 }
 
-interface SublevelConfig {
-  id: 1 | 2 | 3;
-  start: number;
-  end: number;
-  objective: string;
-  flavor: string;
-}
-
-type LevelPhase = 'sublevels' | 'master' | 'knowledge';
-type TransitionKind = 'sublevel' | 'master' | 'knowledge';
-
-const MASTER_TIME = 60;
-
-const elementByOperation: Record<string, string> = {
-  addition: 'Aire',
-  subtraction: 'Agua',
-  multiplication: 'Fuego',
-  division: 'Tierra',
-};
-
-const accentByOperation: Record<string, string> = {
-  addition: 'from-sky-200 to-cyan-100 text-sky-900',
-  subtraction: 'from-blue-900 to-cyan-700 text-cyan-100',
-  multiplication: 'from-orange-500 to-amber-400 text-amber-50',
-  division: 'from-emerald-900 to-lime-800 text-lime-100',
-};
-
-export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onExitToMap }) => {
-  const { state, answerQuestion, useAbility: activateAbility, getAbilityData, resetLevel } = useGame();
-  const [phase, setPhase] = useState<LevelPhase>('sublevels');
-  const [transitionKind, setTransitionKind] = useState<TransitionKind>('sublevel');
+export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onKnowledge }) => {
+  const { state, answerQuestion, useAbility: activateAbility, getAbilityData } = useGame();
   const [currentProblem, setCurrentProblem] = useState(0);
   const [currentSublevel, setCurrentSublevel] = useState(0);
-  const [masterProblemIndex, setMasterProblemIndex] = useState(0);
-  const [masterTimeLeft, setMasterTimeLeft] = useState(MASTER_TIME);
   const [showTransition, setShowTransition] = useState(true);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [multiplierActive, setMultiplierActive] = useState(false);
   const [shieldActive, setShieldActive] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const [gameOverConfig, setGameOverConfig] = useState<{ message: string; action: 'map' | 'retry-sublevel' | 'retry-master'; button: string } | null>(null);
+  const [gameOverConfig, setGameOverConfig] = useState<{ message: string; action: 'map' | 'retry-sublevel'; button: string } | null>(null);
 
   const sublevels: SublevelConfig[] = useMemo(() => [
     { id: 1, start: 0, end: 2, objective: `Realizar ${level.operationSpanish.toLowerCase()} de 1 cifra.`, flavor: 'Domina la brisa fresca.' },
@@ -58,34 +27,8 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
     { id: 3, start: 6, end: 9, objective: `Realizar ${level.operationSpanish.toLowerCase()} de 3 cifras.`, flavor: 'Canaliza tu energía de maestro.' },
   ], [level.operationSpanish]);
 
-  const masterProblems: Problem[] = useMemo(() => {
-    const indexes = [0, 3, 6, 9, 2];
-    return indexes.map((index, i) => ({ ...level.problems[index], id: i + 1 }));
-  }, [level.problems]);
-
+  const problem = level.problems[currentProblem];
   const sublevel = sublevels[currentSublevel];
-  const activeProblem = phase === 'master' ? masterProblems[masterProblemIndex] : level.problems[currentProblem];
-
-  useEffect(() => {
-    if (phase !== 'master' || showTransition || gameOverConfig || masterTimeLeft <= 0) return;
-
-    const timer = setInterval(() => {
-      setMasterTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setGameOverConfig({
-            message: 'El maestro oscuro ha desviado tu concentración. Respira, reajusta tu estrategia y vuelve a desafiarlo.',
-            action: 'retry-master',
-            button: 'Reiniciar subnivel maestro',
-          });
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [phase, showTransition, gameOverConfig, masterTimeLeft]);
 
   const handleSublevelFailure = () => {
     if (sublevel.id === 1) {
@@ -122,31 +65,19 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
     }
 
     resetLevel();
+    setCurrentProblem(sublevel.start);
+    setShowTransition(true);
     setMultiplierActive(false);
     setShieldActive(false);
     setShowHint(false);
     setFeedback(null);
     setGameOverConfig(null);
-
-    if (gameOverConfig.action === 'retry-master') {
-      setPhase('master');
-      setTransitionKind('master');
-      setMasterProblemIndex(0);
-      setMasterTimeLeft(MASTER_TIME);
-      setShowTransition(true);
-      return;
-    }
-
-    setPhase('sublevels');
-    setTransitionKind('sublevel');
-    setCurrentProblem(sublevel.start);
-    setShowTransition(true);
   };
 
   const handleAnswer = (answer: number) => {
-    if (feedback !== null || !activeProblem) return;
+    if (feedback !== null || !problem) return;
 
-    const isCorrect = answer === activeProblem.answer;
+    const isCorrect = answer === problem.answer;
     const willLoseAllLives = !isCorrect && !shieldActive && state.lives <= 1;
 
     if (isCorrect) {
@@ -164,7 +95,7 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
       answerQuestion(true);
     } else {
       setFeedback('incorrect');
-      if (activeProblem.hint) {
+      if (problem.hint) {
         setShowHint(true);
       }
       answerQuestion(false);
@@ -175,53 +106,26 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
       setShowHint(false);
 
       if (willLoseAllLives) {
-        if (phase === 'master') {
-          setGameOverConfig({
-            message: 'El maestro oscuro ha quebrado tus defensas. Reúne tu energía y desafíalo nuevamente.',
-            action: 'retry-master',
-            button: 'Reiniciar subnivel maestro',
-          });
-        } else {
-          handleSublevelFailure();
-        }
+        handleSublevelFailure();
         return;
       }
 
-      if (phase === 'sublevels') {
-        if (currentProblem < sublevel.end) {
-          setCurrentProblem((prev) => prev + 1);
-          return;
-        }
+      if (currentProblem < sublevel.end) {
+        setCurrentProblem(prev => prev + 1);
+        return;
+      }
 
-        if (currentSublevel < sublevels.length - 1) {
-          const nextSublevel = currentSublevel + 1;
-          setCurrentSublevel(nextSublevel);
-          setCurrentProblem(sublevels[nextSublevel].start);
-          setTransitionKind('sublevel');
-          setShowTransition(true);
-          setMultiplierActive(false);
-          setShieldActive(false);
-          return;
-        }
-
-        setPhase('master');
-        setTransitionKind('master');
-        setMasterProblemIndex(0);
-        setMasterTimeLeft(MASTER_TIME);
+      if (currentSublevel < sublevels.length - 1) {
+        const nextSublevel = currentSublevel + 1;
+        setCurrentSublevel(nextSublevel);
+        setCurrentProblem(sublevels[nextSublevel].start);
         setShowTransition(true);
         setMultiplierActive(false);
         setShieldActive(false);
         return;
       }
 
-      if (masterProblemIndex < masterProblems.length - 1) {
-        setMasterProblemIndex((prev) => prev + 1);
-        return;
-      }
-
-      setPhase('knowledge');
-      setTransitionKind('knowledge');
-      setShowTransition(true);
+      onComplete();
     }, 1200);
   };
 
@@ -234,12 +138,6 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
         setShieldActive(true);
       }
     }
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   if (gameOverConfig) {
@@ -255,6 +153,26 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
             style={{ backgroundColor: level.color }}
           >
             {gameOverConfig.button}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (showTransition) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: level.bgColor }}>
+        <div className={`max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-gradient-to-br ${accentByOperation[level.operation] || 'from-slate-100 to-slate-200 text-slate-900'}`}>
+          <div className="text-6xl mb-4">{level.icon}</div>
+          <h2 className="text-3xl font-bold mb-1">{level.name}</h2>
+          <p className="font-semibold mb-4">{elementByOperation[level.operation] || 'Elemento'} · Subnivel {sublevel.id}</p>
+          <p className="text-lg font-bold">Objetivo: {sublevel.objective}</p>
+          <p className="mt-2 opacity-90">{sublevel.flavor}</p>
+          <button
+            onClick={() => setShowTransition(false)}
+            className="mt-6 px-8 py-3 rounded-xl bg-white/90 text-slate-900 font-bold hover:scale-105 transition"
+          >
+            Comenzar subnivel {sublevel.id}
           </button>
         </div>
       </div>
@@ -331,27 +249,18 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
         <div className="max-w-md mx-auto">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="text-3xl">{phase === 'master' ? '🕶️' : level.icon}</span>
-              <span className="font-bold" style={{ color: level.color }}>{phase === 'master' ? `${level.name} · Subnivel Maestro` : level.name}</span>
+              <span className="text-3xl">{level.icon}</span>
+              <span className="font-bold" style={{ color: level.color }}>{level.name}</span>
             </div>
             <Hearts lives={state.lives} />
           </div>
 
-          {phase === 'master' && (
-            <div className="mb-3 rounded-xl bg-slate-900/85 text-white px-4 py-2 flex items-center justify-between">
-              <span className="text-sm font-semibold">⏳ Tiempo del maestro oscuro</span>
-              <span className="font-bold">{formatTime(masterTimeLeft)}</span>
-            </div>
-          )}
-
-          <ProgressBar current={progressCurrent} total={progressTotal} color={level.color} />
+          <ProgressBar current={currentProblem + 1} total={level.problems.length} color={level.color} />
 
           <div className="flex justify-between items-center mt-4">
             <ScoreDisplay score={state.score} streak={state.streak} />
             <div className="text-sm font-medium" style={{ color: level.color }}>
-              {phase === 'master'
-                ? `Maestro · Ejercicio ${masterProblemIndex + 1}/${masterProblems.length}`
-                : `Subnivel ${sublevel.id} · Pregunta ${currentProblem + 1}/${level.problems.length}`}
+              Subnivel {sublevel.id} · Pregunta {currentProblem + 1}/{level.problems.length}
             </div>
           </div>
         </div>
@@ -376,16 +285,16 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-3xl p-8 shadow-xl text-center">
-            {showHint && activeProblem?.hint && (
+            {showHint && problem?.hint && (
               <div className="mb-6">
                 <HintDisplay hint={activeProblem.hint} />
               </div>
             )}
 
-            <div className="text-6xl font-bold text-gray-800 mb-8">{activeProblem?.question}</div>
+            <div className="text-6xl font-bold text-gray-800 mb-8">{problem?.question}</div>
 
             <div className="grid grid-cols-2 gap-4">
-              {activeProblem?.options.map((option, index) => (
+              {problem?.options.map((option, index) => (
                 <AnswerButton
                   key={index}
                   value={option}
@@ -425,7 +334,7 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
       {feedback && (
         <Feedback
           type={feedback}
-          message={feedback === 'incorrect' ? `La respuesta era ${activeProblem?.answer}` : undefined}
+          message={feedback === 'incorrect' ? `La respuesta era ${problem?.answer}` : undefined}
         />
       )}
     </div>

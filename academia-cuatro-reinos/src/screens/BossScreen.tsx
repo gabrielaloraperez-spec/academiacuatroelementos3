@@ -59,7 +59,6 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
 
     if (isCorrect) {
       setFeedback('correct');
-      setShowHint(false);
       const scoreMultiplier = multiplierActive ? 2 : 1;
       if (multiplierActive) {
         setMultiplierActive(false);
