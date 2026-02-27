@@ -4,23 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-<<<<<<< HEAD
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:prod": "BUILD_MODE=prod vite build",
+    "build:prod": "tsc -b && BUILD_MODE=prod vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "clean": "rimraf node_modules"
+    "clean": "rm -rf node_modules"
   },
-=======
-  "dev": "vite",
-  "build": "tsc -b && vite build",
-  "build:prod": "tsc -b && BUILD_MODE=prod vite build",
-  "lint": "eslint .",
-  "preview": "vite preview",
-  "clean": "rm -rf node_modules .pnpm-store pnpm-lock.yaml"
-}
->>>>>>> 0dcf76a007f3ff1d2f7a8e3a419b8ad1c4f377c4
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -85,7 +75,7 @@
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.12.0",
     "postcss": "8.4.49",
-    "tailwindcss": "v3.4.16",
+    "tailwindcss": "3.4.16",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.15.0",
     "vite": "^6.0.1",
