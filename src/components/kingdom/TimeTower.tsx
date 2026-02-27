@@ -42,6 +42,25 @@ export const TimeTower: React.FC<TimeTowerProps> = ({ progress, bossUnlocked, on
         </div>
 
         <div className="text-2xl text-yellow-300 group-hover:animate-pulse-time">{bossUnlocked ? '👑' : '🔒'}</div>
+        <div className={`relative h-28 w-10 rounded-xl border border-violet-200/20 bg-violet-950/55 p-1 ${theme.towerGlow}`}>
+          <div className="absolute inset-x-2 top-2 h-3 rounded-full bg-amber-200/70" />
+          <div className="absolute bottom-2 left-1/2 h-[78%] w-4 -translate-x-1/2 overflow-hidden rounded-full bg-violet-950/80">
+            <div
+              className={`absolute bottom-0 w-full rounded-full bg-gradient-to-t ${theme.towerFill} animate-pulse-time transition-all duration-700`}
+              style={{ height: `${percentage}%` }}
+            />
+          </div>
+          {bossUnlocked && <div className="absolute -right-2 -top-2 text-lg animate-pulse-time">✨</div>}
+        </div>
+
+        <div className="flex-1 text-left">
+          <h3 className={`font-bold text-lg ${theme.textPrimary}`}>Torre del Tiempo</h3>
+          <p className={`text-xs ${theme.textSecondary}`}>Progreso global del estudiante</p>
+          <p className="mt-2 text-sm text-amber-100">Avance total: {percentage}%</p>
+          <p className="text-xs text-violet-200/85 mt-1">{bossUnlocked ? 'El desafío final está disponible.' : 'Completa los cuatro reinos para desbloquearla.'}</p>
+        </div>
+
+        <div className="text-2xl text-amber-200 group-hover:animate-pulse-time">{bossUnlocked ? '👑' : '🔒'}</div>
       </div>
     </button>
   );
