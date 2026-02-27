@@ -48,7 +48,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
-  const answerQuestion = (isCorrect: boolean, isBoss: boolean = false) => {
+  const answerQuestion = (isCorrect: boolean, isBoss: boolean = false, scoreMultiplier: number = 1) => {
     setState(prev => {
       let newMana = prev.mana;
       let newStreak = prev.streak;
@@ -62,7 +62,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         newStreak += 1;
         newMaxStreak = Math.max(newMaxStreak, newStreak);
         const streakBonus = Math.min(newStreak * SCORING.STREAK_BONUS, SCORING.STREAK_MAX);
-        scoreGain = SCORING.CORRECT_ANSWER + streakBonus;
+        scoreGain = (SCORING.CORRECT_ANSWER + streakBonus) * Math.max(1, scoreMultiplier);
         newMana += 10;
         newCurrentLevelCorrect += 1;
       } else {

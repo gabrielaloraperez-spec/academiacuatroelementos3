@@ -108,6 +108,10 @@ const GameApp: React.FC = () => {
             level={level}
             onComplete={handleLevelComplete}
             onKnowledge={() => setCurrentScreen('knowledge')}
+            onExitToMap={() => {
+              resetLevel();
+              setCurrentScreen('map');
+            }}
           />
         );
       }

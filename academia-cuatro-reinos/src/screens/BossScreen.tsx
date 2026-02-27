@@ -58,12 +58,11 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
 
     if (isCorrect) {
       setFeedback('correct');
-      let points = 100;
+      const scoreMultiplier = multiplierActive ? 2 : 1;
       if (multiplierActive) {
-        points *= 2;
         setMultiplierActive(false);
       }
-      answerQuestion(true, true);
+      answerQuestion(true, true, scoreMultiplier);
     } else {
       if (shieldActive) {
         setShieldActive(false);
