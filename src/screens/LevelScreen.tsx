@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/useGame';
 import { Level } from '../data/gameData';
 import { ProgressBar, Hearts, ScoreDisplay, AnswerButton, Feedback, AbilityButton, HintDisplay } from '../components/GameComponents';
 
@@ -10,7 +10,7 @@ interface LevelScreenProps {
 }
 
 export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onKnowledge }) => {
-  const { state, answerQuestion, useAbility, getAbilityData } = useGame();
+  const { state, answerQuestion, useAbility: activateAbility, getAbilityData } = useGame();
   const [currentProblem, setCurrentProblem] = useState(0);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -76,7 +76,7 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onK
   };
 
   const handleUseAbility = (abilityId: string) => {
-    const success = useAbility(abilityId);
+    const success = activateAbility(abilityId);
     if (success) {
       if (abilityId === 'multiplier') {
         setMultiplierActive(true);
