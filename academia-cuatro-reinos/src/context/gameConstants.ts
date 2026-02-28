@@ -33,7 +33,7 @@ export interface GameState {
 export interface GameContextType {
   state: GameState;
   startLevel: (levelId: number) => void;
-  answerQuestion: (isCorrect: boolean, isBoss?: boolean) => void;
+  answerQuestion: (isCorrect: boolean, isBoss?: boolean, scoreMultiplier?: number) => void;
   useAbility: (abilityId: string) => boolean;
   resetLevel: () => void;
   completeLevel: (levelId: number, wasPerfect: boolean) => void;
