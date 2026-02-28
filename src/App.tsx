@@ -20,6 +20,7 @@ const GameApp: React.FC = () => {
   const [currentLevelId, setCurrentLevelId] = useState<number>(0);
   const [gameOverScore, setGameOverScore] = useState<number>(0);
   const [isBossGameOver, setIsBossGameOver] = useState<boolean>(false);
+  const [challengeLevelId, setChallengeLevelId] = useState<number>(0);
 
   // Check if player has set up their profile
   useEffect(() => {
@@ -34,6 +35,7 @@ const GameApp: React.FC = () => {
   };
 
   const handleLevelComplete = (wasPerfect: boolean = false) => {
+    setChallengeLevelId(currentLevelId);
     completeLevel(currentLevelId, wasPerfect);
     // Check if all 4 levels are complete to unlock boss
     if (currentLevelId === 4) {
