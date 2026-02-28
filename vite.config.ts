@@ -17,6 +17,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
+        cacheId: 'academia-domain-challenge-v2',
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
