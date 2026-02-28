@@ -21,6 +21,7 @@ const GameApp: React.FC = () => {
   const [gameOverScore, setGameOverScore] = useState<number>(0);
   const [isBossGameOver, setIsBossGameOver] = useState<boolean>(false);
   const [challengeLevelId, setChallengeLevelId] = useState<number>(0);
+  const [pendingPerfectChallenge, setPendingPerfectChallenge] = useState<boolean>(false);
 
   // Check if player has set up their profile
   useEffect(() => {
@@ -36,6 +37,8 @@ const GameApp: React.FC = () => {
 
   const handleLevelComplete = (wasPerfect: boolean = false) => {
     setChallengeLevelId(currentLevelId);
+    setPendingPerfectChallenge(wasPerfect);
+    setCurrentScreen('domain_challenge');
     completeLevel(currentLevelId, wasPerfect);
     setCurrentScreen('domain_challenge');
     // Check if all 4 levels are complete to unlock boss
@@ -131,6 +134,18 @@ const GameApp: React.FC = () => {
         return (
           <DomainChallengeScreen
             level={challengeLevel}
+            onComplete={() => {
+              completeLevel(challengeLevelId, pendingPerfectChallenge);
+              setCurrentScreen('knowledge');
+            }}
+            onFail={() => {
+              resetLevel();
+              setCurrentLevelId(challengeLevelId);
+              setCurrentScreen('level');
+            }}
+          />
+        );
+      }
             onComplete={() => setCurrentScreen('knowledge')}
           />
         );
