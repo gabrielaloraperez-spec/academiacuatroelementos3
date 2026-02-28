@@ -37,6 +37,7 @@ const GameApp: React.FC = () => {
   const handleLevelComplete = (wasPerfect: boolean = false) => {
     setChallengeLevelId(currentLevelId);
     completeLevel(currentLevelId, wasPerfect);
+    setCurrentScreen('domain_challenge');
     // Check if all 4 levels are complete to unlock boss
     if (currentLevelId === 4) {
       // This was the last level - boss unlocked
@@ -125,6 +126,15 @@ const GameApp: React.FC = () => {
       }
 
 
+      case 'domain_challenge': {
+        const challengeLevel = levels.find(l => l.id === challengeLevelId) || getCurrentLevel();
+        return (
+          <DomainChallengeScreen
+            level={challengeLevel}
+            onComplete={() => setCurrentScreen('knowledge')}
+          />
+        );
+      }
       case 'domain_challenge':
         return (
           <DomainChallengeScreen
