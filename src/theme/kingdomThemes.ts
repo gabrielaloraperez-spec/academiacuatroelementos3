@@ -12,6 +12,8 @@ export interface KingdomTheme {
   textPrimary: string;
   textSecondary: string;
   hoverAnimation: string;
+  particleClass?: string;
+  accentText?: string;
   towerGlow?: string;
   towerFill?: string;
 }
@@ -29,6 +31,8 @@ export const kingdomThemes: Record<KingdomOperation, KingdomTheme> = {
     textPrimary: 'text-sky-950',
     textSecondary: 'text-sky-700',
     hoverAnimation: 'group-hover:animate-float-air',
+    particleClass: 'bg-sky-300/80',
+    accentText: 'text-sky-800',
   },
   subtraction: {
     operation: 'subtraction',
@@ -42,6 +46,8 @@ export const kingdomThemes: Record<KingdomOperation, KingdomTheme> = {
     textPrimary: 'text-cyan-100',
     textSecondary: 'text-cyan-200/80',
     hoverAnimation: 'group-hover:animate-ripple-water',
+    particleClass: 'bg-cyan-200/80',
+    accentText: 'text-cyan-100',
   },
   multiplication: {
     operation: 'multiplication',
@@ -55,6 +61,8 @@ export const kingdomThemes: Record<KingdomOperation, KingdomTheme> = {
     textPrimary: 'text-amber-50',
     textSecondary: 'text-amber-100/80',
     hoverAnimation: 'group-hover:animate-flare-fire',
+    particleClass: 'bg-amber-200/80',
+    accentText: 'text-amber-50',
   },
   division: {
     operation: 'division',
@@ -68,6 +76,8 @@ export const kingdomThemes: Record<KingdomOperation, KingdomTheme> = {
     textPrimary: 'text-lime-50',
     textSecondary: 'text-lime-100/75',
     hoverAnimation: 'group-hover:animate-rumble-earth',
+    particleClass: 'bg-lime-200/80',
+    accentText: 'text-lime-100',
   },
   time: {
     operation: 'time',
@@ -81,6 +91,8 @@ export const kingdomThemes: Record<KingdomOperation, KingdomTheme> = {
     textPrimary: 'text-amber-100',
     textSecondary: 'text-violet-200/80',
     hoverAnimation: 'group-hover:animate-pulse-time',
+    particleClass: 'bg-violet-200/80',
+    accentText: 'text-amber-100',
     towerGlow: 'shadow-[0_0_35px_rgba(168,85,247,0.55)]',
     towerFill: 'from-fuchsia-400 via-violet-300 to-amber-300',
   },

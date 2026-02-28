@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/useGame';
 import { bossProblems, Problem } from '../data/gameData';
-import { ProgressBar, Hearts, ScoreDisplay, AnswerButton, Feedback, AbilityButton } from '../components/GameComponents';
+import { ProgressBar, Hearts, ScoreDisplay, AnswerButton, Feedback, AbilityButton, HintDisplay } from '../components/GameComponents';
 
 interface BossScreenProps {
   onComplete: () => void;
@@ -19,6 +19,7 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
   const [multiplierActive, setMultiplierActive] = useState(false);
   const [shieldActive, setShieldActive] = useState(false);
   const [timeFrozen, setTimeFrozen] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   const problem = bossProblems[currentProblem];
   const isComplete = currentProblem >= bossProblems.length;
@@ -67,9 +68,14 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
       if (shieldActive) {
         setShieldActive(false);
         setFeedback('correct');
+        setShowHint(false);
         answerQuestion(true, true);
       } else {
         setFeedback('incorrect');
+        // Show hint after incorrect answer if available
+        if (problem.hint) {
+          setShowHint(true);
+        }
         answerQuestion(false, true);
       }
     }
@@ -77,6 +83,7 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
     setTimeout(() => {
       setFeedback(null);
       setSelectedAnswer(null);
+      setShowHint(false);
 
       if (currentProblem < bossProblems.length - 1) {
         setCurrentProblem(prev => prev + 1);
@@ -203,6 +210,13 @@ export const BossScreen: React.FC<BossScreenProps> = ({ onComplete, onGameOver }
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <div className="bg-white/95 backdrop-blur rounded-3xl p-8 shadow-2xl text-center">
+            {/* Hint Display */}
+            {showHint && problem.hint && (
+              <div className="mb-6">
+                <HintDisplay hint={problem.hint} />
+              </div>
+            )}
+
             <div className="text-5xl font-bold text-gray-800 mb-8">
               {problem.question}
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useGame } from '../context/useGame';
 import { Level } from '../data/gameData';
 import { ProgressBar, Hearts, ScoreDisplay, AnswerButton, Feedback, AbilityButton, HintDisplay } from '../components/GameComponents';
@@ -10,8 +10,16 @@ interface LevelScreenProps {
   onExitToMap: () => void;
 }
 
-export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onKnowledge }) => {
-  const { state, answerQuestion, useAbility: activateAbility, getAbilityData } = useGame();
+interface SublevelConfig {
+  id: number;
+  start: number;
+  end: number;
+  objective: string;
+  flavor: string;
+}
+
+export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onExitToMap }) => {
+  const { state, answerQuestion, useAbility: activateAbility, getAbilityData, resetLevel } = useGame();
   const [currentProblem, setCurrentProblem] = useState(0);
   const [currentSublevel, setCurrentSublevel] = useState(0);
   const [showTransition, setShowTransition] = useState(true);
@@ -162,15 +170,16 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onK
   if (showTransition) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: level.bgColor }}>
-        <div className={`max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-gradient-to-br ${accentByOperation[level.operation] || 'from-slate-100 to-slate-200 text-slate-900'}`}>
+        <div className="max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-white">
           <div className="text-6xl mb-4">{level.icon}</div>
-          <h2 className="text-3xl font-bold mb-1">{level.name}</h2>
-          <p className="font-semibold mb-4">{elementByOperation[level.operation] || 'Elemento'} · Subnivel {sublevel.id}</p>
+          <h2 className="text-3xl font-bold mb-1" style={{ color: level.color }}>{level.name}</h2>
+          <p className="font-semibold mb-4" style={{ color: level.color }}>Subnivel {sublevel.id}</p>
           <p className="text-lg font-bold">Objetivo: {sublevel.objective}</p>
-          <p className="mt-2 opacity-90">{sublevel.flavor}</p>
+          <p className="mt-2 text-gray-600">{sublevel.flavor}</p>
           <button
             onClick={() => setShowTransition(false)}
-            className="mt-6 px-8 py-3 rounded-xl bg-white/90 text-slate-900 font-bold hover:scale-105 transition"
+            className="mt-6 px-8 py-3 rounded-xl text-white font-bold"
+            style={{ backgroundColor: level.color }}
           >
             Comenzar subnivel {sublevel.id}
           </button>
