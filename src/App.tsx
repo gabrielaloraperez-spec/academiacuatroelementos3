@@ -38,6 +38,19 @@ const GameApp: React.FC = () => {
     setChallengeLevelId(currentLevelId);
     completeLevel(currentLevelId, wasPerfect);
     setCurrentScreen('domain_challenge');
+    // Check if all 4 levels are complete to unlock boss
+    if (currentLevelId === 4) {
+      // This was the last level - boss unlocked
+      setCurrentScreen('map');
+      return;
+    }
+
+    if (currentLevelId === 3) {
+      setCurrentScreen('domain_challenge');
+      return;
+    }
+
+    setCurrentScreen('knowledge');
   };
 
   const handleKnowledgeComplete = () => {
@@ -122,6 +135,12 @@ const GameApp: React.FC = () => {
           />
         );
       }
+      case 'domain_challenge':
+        return (
+          <DomainChallengeScreen
+            onComplete={() => setCurrentScreen('knowledge')}
+          />
+        );
 
       case 'knowledge': {
         const knowledgeLevel = getCurrentLevel();
