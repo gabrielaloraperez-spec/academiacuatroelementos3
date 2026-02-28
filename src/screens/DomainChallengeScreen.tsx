@@ -83,6 +83,7 @@ export const DomainChallengeScreen: React.FC<DomainChallengeScreenProps> = ({ on
     if (!started || result !== null) return;
 
     if (answeredCount >= MIN_ANSWERS_FOR_EARLY_PASS && accuracy >= PASS_ACCURACY) {
+    if (answeredCount >= 10 && accuracy >= PASS_ACCURACY) {
       setResult('success');
       return;
     }
@@ -144,6 +145,10 @@ export const DomainChallengeScreen: React.FC<DomainChallengeScreenProps> = ({ on
           <p className="text-indigo-600 font-semibold mb-3">{level.name}</p>
           <p className="text-gray-700 whitespace-pre-line leading-relaxed">
             {'Bienvenido al reto de dominio\nYa que te dominado los 3 niveles de este reino, ahora tendrás que demostrar tus habilidades contra reloj.\n\nSi alcanzas 85% o más de respuestas correctas antes de acabar el tiempo, superarás el reto y pasarás a la sala del conocimiento. Con menos de 85%, deberás repetir el reino.'}
+            Bienvenido al reto de dominio{`
+`}Ya que te dominado los 3 niveles de este reino, ahora tendrás que demostrar tus habilidades contra reloj.{`
+
+`}Si alcanzas 85% o más de respuestas correctas antes de acabar el tiempo, superarás el reto y pasarás a la sala del conocimiento. Con menos de 85%, deberás repetir el reino.
           {level && <p className="text-indigo-600 font-semibold mb-3">{level.name}</p>}
           <p className="text-gray-700 whitespace-pre-line leading-relaxed">
             Bienvenido al reto de dominio{`\n`}Ya que te dominado los 3 niveles de este reino, ahora tendrás que demostrar tus habilidades contra reloj.{`\n\n`}En este reto se distribuyen aleatoriamente ejercicios misceláneos de este nivel con una barra de tiempo de 2 min 30 seg.
