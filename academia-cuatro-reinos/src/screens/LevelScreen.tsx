@@ -12,7 +12,6 @@ interface LevelScreenProps {
 
 interface SublevelConfig {
   id: number;
-  name: string;
   start: number;
   end: number;
   objective: string;
@@ -200,7 +199,7 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
         <div className="max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-white">
           <div className="text-6xl mb-4">{level.icon}</div>
           <h2 className="text-3xl font-bold mb-1" style={{ color: level.color }}>{level.name}</h2>
-          <p className="font-semibold mb-4" style={{ color: level.color }}>Subnivel {sublevel.id}: {sublevel.name}</p>
+          <p className="font-semibold mb-4" style={{ color: level.color }}>Subnivel {sublevel.id}</p>
           <p className="text-lg font-bold">Objetivo: {sublevel.objective}</p>
           <p className="mt-2 text-gray-600">{sublevel.flavor}</p>
           <button
