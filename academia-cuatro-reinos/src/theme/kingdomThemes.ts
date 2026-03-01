@@ -21,8 +21,8 @@ export interface KingdomTheme {
 export const kingdomThemes: Record<KingdomOperation, KingdomTheme> = {
   addition: {
     operation: 'addition',
-    kingdomName: 'Reino de la Suma',
-    elementName: 'Aire',
+    kingdomName: 'Reino de la Energía',
+    elementName: 'Fuego',
     icon: '🌀',
     cardGradient: 'from-blue-100 via-sky-100 to-cyan-100',
     cardBorder: 'border-sky-200/90',
@@ -36,8 +36,8 @@ export const kingdomThemes: Record<KingdomOperation, KingdomTheme> = {
   },
   subtraction: {
     operation: 'subtraction',
-    kingdomName: 'Reino de la Resta',
-    elementName: 'Agua',
+    kingdomName: 'Reino del Equilibrio',
+    elementName: 'Aire',
     icon: '💧',
     cardGradient: 'from-blue-900 via-blue-800 to-cyan-700',
     cardBorder: 'border-cyan-300/40',
@@ -51,8 +51,8 @@ export const kingdomThemes: Record<KingdomOperation, KingdomTheme> = {
   },
   multiplication: {
     operation: 'multiplication',
-    kingdomName: 'Reino de la Multiplicación',
-    elementName: 'Fuego',
+    kingdomName: 'Reino de la Expansión',
+    elementName: 'Tierra',
     icon: '🔥',
     cardGradient: 'from-orange-500 via-orange-400 to-amber-300',
     cardBorder: 'border-orange-200/60',
@@ -66,8 +66,8 @@ export const kingdomThemes: Record<KingdomOperation, KingdomTheme> = {
   },
   division: {
     operation: 'division',
-    kingdomName: 'Reino de la División',
-    elementName: 'Tierra',
+    kingdomName: 'Reino de la Precisión',
+    elementName: 'Agua',
     icon: '🌍',
     cardGradient: 'from-green-900 via-emerald-900 to-lime-800',
     cardBorder: 'border-lime-300/35',

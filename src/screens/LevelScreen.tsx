@@ -12,6 +12,7 @@ interface LevelScreenProps {
 
 interface SublevelConfig {
   id: number;
+  name: string;
   start: number;
   end: number;
   objective: string;
@@ -29,11 +30,37 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
   const [showHint, setShowHint] = useState(false);
   const [gameOverConfig, setGameOverConfig] = useState<{ message: string; action: 'map' | 'retry-sublevel'; button: string } | null>(null);
 
-  const sublevels: SublevelConfig[] = useMemo(() => [
-    { id: 1, start: 0, end: 2, objective: `Realizar ${level.operationSpanish.toLowerCase()} de 1 cifra.`, flavor: 'Domina la brisa fresca.' },
-    { id: 2, start: 3, end: 5, objective: `Realizar ${level.operationSpanish.toLowerCase()} de 2 cifras.`, flavor: 'Controla el flujo del elemento.' },
-    { id: 3, start: 6, end: 9, objective: `Realizar ${level.operationSpanish.toLowerCase()} de 3 cifras.`, flavor: 'Canaliza tu energía de maestro.' },
-  ], [level.operationSpanish]);
+  const sublevels: SublevelConfig[] = useMemo(() => {
+    const operationSublevels: Record<string, Omit<SublevelConfig, 'start' | 'end'>[]> = {
+      addition: [
+        { id: 1, name: 'Chispa Inicial', objective: 'Practicar sumas de una cifra.', flavor: 'Cada resultado es una chispa que enciende tu dominio del fuego.' },
+        { id: 2, name: 'Llama Creciente', objective: 'Practicar sumas de dos cifras.', flavor: 'Dominar el llevar es controlar el fuego sin que se desborde.' },
+        { id: 3, name: 'Fuego Supremo', objective: 'Practicar sumas de tres cifras.', flavor: 'Un verdadero Guardián no teme al incendio: lo dirige.' },
+      ],
+      subtraction: [
+        { id: 1, name: 'Brisa Suave', objective: 'Practicar restas de una cifra.', flavor: 'La brisa te enseñará que quitar también es crear espacio.' },
+        { id: 2, name: 'Viento Firme', objective: 'Practicar restas de dos cifras.', flavor: 'Mantén el equilibrio cuando debas pedir prestado.' },
+        { id: 3, name: 'Tormenta Serena', objective: 'Practicar restas de tres cifras.', flavor: 'Domina el arte de restar sin perder la calma.' },
+      ],
+      multiplication: [
+        { id: 1, name: 'Semilla', objective: 'Practicar multiplicaciones por una cifra.', flavor: 'Cada resultado es una semilla que multiplica tu poder.' },
+        { id: 2, name: 'Raíces Profundas', objective: 'Practicar multiplicaciones por dos cifras.', flavor: 'Construye el resultado paso a paso y tu dominio crecerá.' },
+        { id: 3, name: 'Bosque Infinito', objective: 'Practicar multiplicaciones más complejas.', flavor: 'Tu poder se expandirá sin límites.' },
+      ],
+      division: [
+        { id: 1, name: 'Gota Clara', objective: 'Practicar divisiones exactas de una cifra.', flavor: 'La claridad comienza cuando repartes con justicia.' },
+        { id: 2, name: 'Corriente Fluida', objective: 'Practicar divisiones de dos cifras.', flavor: 'Mantén el flujo incluso cuando el cálculo se vuelve más complejo.' },
+        { id: 3, name: 'Marea Profunda', objective: 'Practicar divisiones con residuo.', flavor: 'No todo se divide perfectamente y eso también es sabiduría.' },
+      ],
+    };
+
+    const selected = operationSublevels[level.operation] ?? operationSublevels.addition;
+    return selected.map((sublevel, index) => ({
+      ...sublevel,
+      start: index * 3,
+      end: index === 2 ? 9 : index * 3 + 2,
+    }));
+  }, [level.operation]);
 
   const problem = level.problems[currentProblem];
   const sublevel = sublevels[currentSublevel];
@@ -173,7 +200,7 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
         <div className="max-w-xl w-full rounded-3xl p-8 text-center shadow-2xl bg-white">
           <div className="text-6xl mb-4">{level.icon}</div>
           <h2 className="text-3xl font-bold mb-1" style={{ color: level.color }}>{level.name}</h2>
-          <p className="font-semibold mb-4" style={{ color: level.color }}>Subnivel {sublevel.id}</p>
+          <p className="font-semibold mb-4" style={{ color: level.color }}>Subnivel {sublevel.id}: {sublevel.name}</p>
           <p className="text-lg font-bold">Objetivo: {sublevel.objective}</p>
           <p className="mt-2 text-gray-600">{sublevel.flavor}</p>
           <button
@@ -181,7 +208,7 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
             className="mt-6 px-8 py-3 rounded-xl text-white font-bold"
             style={{ backgroundColor: level.color }}
           >
-            Comenzar subnivel {sublevel.id}
+            Comenzar {sublevel.name}
           </button>
         </div>
       </div>
@@ -205,7 +232,7 @@ export const LevelScreen: React.FC<LevelScreenProps> = ({ level, onComplete, onE
           <div className="flex justify-between items-center mt-4">
             <ScoreDisplay score={state.score} streak={state.streak} />
             <div className="text-sm font-medium" style={{ color: level.color }}>
-              Subnivel {sublevel.id} · Pregunta {currentProblem + 1}/{level.problems.length}
+              {sublevel.name} · Pregunta {currentProblem + 1}/{level.problems.length}
             </div>
           </div>
         </div>

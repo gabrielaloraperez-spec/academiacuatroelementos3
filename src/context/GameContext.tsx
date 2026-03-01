@@ -103,14 +103,21 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const currentUses = state.abilityUses[abilityId] || 0;
     if (currentUses <= 0 || state.mana < ability.cost) return false;
 
-    setState(prev => ({
-      ...prev,
-      mana: prev.mana - ability.cost,
-      abilityUses: {
-        ...prev.abilityUses,
-        [abilityId]: prev.abilityUses[abilityId] - 1
-      }
-    }));
+    setState(prev => {
+      const recoveredLives = abilityId === 'recharge'
+        ? (prev.lives <= 0 ? 1 : Math.min(3, prev.lives + 1))
+        : prev.lives;
+
+      return {
+        ...prev,
+        mana: prev.mana - ability.cost,
+        lives: recoveredLives,
+        abilityUses: {
+          ...prev.abilityUses,
+          [abilityId]: prev.abilityUses[abilityId] - 1
+        }
+      };
+    });
 
     return true;
   };
