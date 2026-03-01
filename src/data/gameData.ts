@@ -95,8 +95,8 @@ export const level1Data: Level = {
 // Level 2: Subtraction - Reino de la Defensa
 export const level2Data: Level = {
   id: 2,
-  name: "Reino de la Defensa",
-  realm: "Defensa",
+  name: "Reino del Equilibrio",
+  realm: "Equilibrio",
   operation: "subtraction",
   operationSpanish: "Sustracción",
   icon: "🛡️",
@@ -136,8 +136,8 @@ export const level2Data: Level = {
 // Level 3: Multiplication - Reino de la Construcción
 export const level3Data: Level = {
   id: 3,
-  name: "Reino de la Construcción",
-  realm: "Construcción",
+  name: "Reino de la Expansión",
+  realm: "Expansión",
   operation: "multiplication",
   operationSpanish: "Multiplicación",
   icon: "🔨",
@@ -177,8 +177,8 @@ export const level3Data: Level = {
 // Level 4: Division - Reino de la Distribución
 export const level4Data: Level = {
   id: 4,
-  name: "Reino de la Distribución",
-  realm: "Distribución",
+  name: "Reino de la Precisión",
+  realm: "Precisión",
   operation: "division",
   operationSpanish: "División",
   icon: "⚖️",
