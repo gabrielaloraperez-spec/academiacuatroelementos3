@@ -127,13 +127,7 @@ export const DomainChallengeScreen: React.FC<DomainChallengeScreenProps> = ({ le
           <div className="text-6xl mb-4">🌀</div>
           <h1 className="text-3xl font-bold text-indigo-700 mb-4">Reto de Dominio</h1>
           <p className="text-indigo-600 font-semibold mb-3">{level.name}</p>
-          <p className="text-gray-700 whitespace-pre-line leading-relaxed">
-            Bienvenido al reto de dominio{`
-`}Ya que te dominado los 3 niveles de este reino, ahora tendrás que demostrar tus habilidades contra reloj.{`
-
-`}Si alcanzas 85% o más de respuestas correctas antes de acabar el tiempo, superarás el reto y pasarás a la sala del conocimiento. Con menos de 85%, deberás repetir el reino.
-          {level && <p className="text-indigo-600 font-semibold mb-3">{level.name}</p>}
-          <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+            <p className="text-gray-700 whitespace-pre-line leading-relaxed">
             Bienvenido al reto de dominio{`\n`}Ya que te dominado los 3 niveles de este reino, ahora tendrás que demostrar tus habilidades contra reloj.{`\n\n`}En este reto se distribuyen aleatoriamente ejercicios misceláneos de este nivel con una barra de tiempo de 2 min 30 seg.
           </p>
           <button
