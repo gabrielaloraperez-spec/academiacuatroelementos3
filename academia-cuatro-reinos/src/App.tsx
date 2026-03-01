@@ -7,11 +7,12 @@ import {
   LevelScreen,
   KnowledgeRoom,
   BossScreen,
-  GameOverScreen
+  GameOverScreen,
+  DomainChallengeScreen
 } from './screens';
 import { levels } from './data/gameData';
 
-type Screen = 'welcome' | 'map' | 'level' | 'knowledge' | 'boss' | 'gameover';
+type Screen = 'welcome' | 'map' | 'level' | 'domain_challenge' | 'knowledge' | 'boss' | 'gameover';
 
 const GameApp: React.FC = () => {
   const { state, startLevel, completeLevel, completeBoss, resetLevel } = useGame();
@@ -19,6 +20,8 @@ const GameApp: React.FC = () => {
   const [currentLevelId, setCurrentLevelId] = useState<number>(0);
   const [gameOverScore, setGameOverScore] = useState<number>(0);
   const [isBossGameOver, setIsBossGameOver] = useState<boolean>(false);
+  const [challengeLevelId, setChallengeLevelId] = useState<number>(0);
+  const [pendingPerfectChallenge, setPendingPerfectChallenge] = useState<boolean>(false);
 
   // Check if player has set up their profile
   useEffect(() => {
@@ -33,15 +36,9 @@ const GameApp: React.FC = () => {
   };
 
   const handleLevelComplete = (wasPerfect: boolean = false) => {
-    completeLevel(currentLevelId, wasPerfect);
-    // Check if all 4 levels are complete to unlock boss
-    if (currentLevelId === 4) {
-      // This was the last level - boss unlocked
-      // For now, go to map
-      setCurrentScreen('map');
-    } else {
-      setCurrentScreen('knowledge');
-    }
+    setChallengeLevelId(currentLevelId);
+    setPendingPerfectChallenge(wasPerfect);
+    setCurrentScreen('domain_challenge');
   };
 
   const handleKnowledgeComplete = () => {
@@ -111,6 +108,24 @@ const GameApp: React.FC = () => {
             onExitToMap={() => {
               resetLevel();
               setCurrentScreen('map');
+            }}
+          />
+        );
+      }
+
+      case 'domain_challenge': {
+        const challengeLevel = levels.find(l => l.id === challengeLevelId) || getCurrentLevel();
+        return (
+          <DomainChallengeScreen
+            level={challengeLevel}
+            onComplete={() => {
+              completeLevel(challengeLevelId, pendingPerfectChallenge);
+              setCurrentScreen('knowledge');
+            }}
+            onFail={() => {
+              resetLevel();
+              setCurrentLevelId(challengeLevelId);
+              setCurrentScreen('level');
             }}
           />
         );

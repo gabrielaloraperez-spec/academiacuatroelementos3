@@ -48,3 +48,39 @@ export default tseslint.config({
   },
 })
 ```
+
+## Integración de `work` con `main` para despliegue
+
+Para mostrar claramente que los cambios de la rama de trabajo quedaron listos para desplegarse en `main`, usa este flujo:
+
+```bash
+# 1) Actualizar referencias
+git fetch --all --prune
+
+# 2) Revisar estado de ambas ramas
+git checkout work
+git status
+git log --oneline --decorate -n 5
+
+git checkout main
+git status
+git log --oneline --decorate -n 5
+
+# 3) Integrar cambios de work en main (fast-forward o merge)
+git merge --no-ff work
+
+# 4) Validar build y lint antes de despliegue
+npm run lint
+npm run build
+
+# 5) Publicar rama main al remoto
+git push origin main
+```
+
+Si `main` no existe localmente, créala desde remoto con:
+
+```bash
+git checkout -b main origin/main
+```
+
+Si no hay remoto configurado (como en este entorno local), la integración puede verificarse localmente con `git log --graph --oneline --decorate` y realizar el push en el entorno con acceso al repositorio remoto.
