@@ -38,6 +38,7 @@ const GameApp: React.FC = () => {
   const handleLevelComplete = (wasPerfect: boolean = false) => {
     setChallengeLevelId(currentLevelId);
     setPendingPerfectChallenge(wasPerfect);
+    completeLevel(currentLevelId, wasPerfect);
     setCurrentScreen('domain_challenge');
   };
 
@@ -127,6 +128,7 @@ const GameApp: React.FC = () => {
               setCurrentLevelId(challengeLevelId);
               setCurrentScreen('level');
             }}
+            onComplete={() => setCurrentScreen('knowledge')}
           />
         );
       }

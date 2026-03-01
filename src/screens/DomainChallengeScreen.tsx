@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Level, Problem } from '../data/gameData';
 
 interface DomainChallengeScreenProps {
@@ -9,18 +10,26 @@ interface DomainChallengeScreenProps {
 
 const TOTAL_TIME_SECONDS = 150;
 const PASS_ACCURACY = 85;
-const MIN_ANSWERS_FOR_EARLY_PASS = 10;
+import { level1Data, level2Data, level3Data, Problem } from '../data/gameData';
 
-function shuffle<T>(items: T[]): T[] {
+interface DomainChallengeScreenProps {
+  onComplete: () => void;
+}
+
+const TOTAL_TIME_SECONDS = 150;
+
+const shuffle = <T,>(items: T[]): T[] => {
   const cloned = [...items];
   for (let i = cloned.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
     [cloned[i], cloned[j]] = [cloned[j], cloned[i]];
   }
   return cloned;
-}
+};
 
-export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChallengeScreenProps) {
+export const DomainChallengeScreen: React.FC<DomainChallengeScreenProps> = ({ level, onComplete, onFail }) => {
+export const DomainChallengeScreen: React.FC<DomainChallengeScreenProps> = ({ level, onComplete }) => {
+export const DomainChallengeScreen: React.FC<DomainChallengeScreenProps> = ({ onComplete }) => {
   const [started, setStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME_SECONDS);
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
@@ -31,6 +40,15 @@ export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChall
 
   const mixedProblems = useMemo(() => {
     const source: Problem[] = level?.problems ?? [];
+
+  const mixedProblems = useMemo(() => {
+    const source: Problem[] = level?.problems ?? [];
+    const source: Problem[] = [
+      ...level1Data.problems,
+      ...level2Data.problems,
+      ...level3Data.problems,
+    ];
+
     return shuffle(
       source.map((problem, index) => ({
         ...problem,
@@ -45,6 +63,13 @@ export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChall
 
   useEffect(() => {
     if (!started || timeLeft <= 0 || result !== null) return;
+  }, []);
+
+  const currentProblem = mixedProblems[currentProblemIndex];
+  const progress = ((TOTAL_TIME_SECONDS - timeLeft) / TOTAL_TIME_SECONDS) * 100;
+
+  useEffect(() => {
+    if (!started || timeLeft <= 0) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => Math.max(0, prev - 1));
@@ -56,7 +81,7 @@ export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChall
   useEffect(() => {
     if (!started || result !== null) return;
 
-    if (answeredCount >= MIN_ANSWERS_FOR_EARLY_PASS && accuracy >= PASS_ACCURACY) {
+    if (answeredCount >= 10 && accuracy >= PASS_ACCURACY) {
       setResult('success');
       return;
     }
@@ -65,12 +90,14 @@ export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChall
       setResult(accuracy >= PASS_ACCURACY ? 'success' : 'failed');
     }
   }, [started, result, answeredCount, accuracy, timeLeft]);
+  }, [started, timeLeft]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
+
 
   if (!level || mixedProblems.length === 0) {
     return (
@@ -80,6 +107,7 @@ export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChall
           <button onClick={onFail} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold">
             Volver al reino
           </button>
+          <button onClick={onComplete} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold">Continuar</button>
         </div>
       </div>
     );
@@ -92,6 +120,10 @@ export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChall
     setFeedback(isCorrect ? 'correct' : 'incorrect');
     setAnsweredCount((prev) => prev + 1);
 
+    if (!started || !currentProblem || feedback !== null || timeLeft <= 0) return;
+
+    const isCorrect = answer === currentProblem.answer;
+    setFeedback(isCorrect ? 'correct' : 'incorrect');
     if (isCorrect) {
       setCorrectAnswers((prev) => prev + 1);
     }
@@ -110,7 +142,15 @@ export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChall
           <h1 className="text-3xl font-bold text-indigo-700 mb-4">Reto de Dominio</h1>
           <p className="text-indigo-600 font-semibold mb-3">{level.name}</p>
           <p className="text-gray-700 whitespace-pre-line leading-relaxed">
-            {'Bienvenido al reto de dominio\nYa que te dominado los 3 niveles de este reino, ahora tendrás que demostrar tus habilidades contra reloj.\n\nSi alcanzas 85% o más de respuestas correctas antes de acabar el tiempo, superarás el reto y pasarás a la sala del conocimiento. Con menos de 85%, deberás repetir el reino.'}
+            Bienvenido al reto de dominio{`
+`}Ya que te dominado los 3 niveles de este reino, ahora tendrás que demostrar tus habilidades contra reloj.{`
+
+`}Si alcanzas 85% o más de respuestas correctas antes de acabar el tiempo, superarás el reto y pasarás a la sala del conocimiento. Con menos de 85%, deberás repetir el reino.
+          {level && <p className="text-indigo-600 font-semibold mb-3">{level.name}</p>}
+          <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+            Bienvenido al reto de dominio{`\n`}Ya que te dominado los 3 niveles de este reino, ahora tendrás que demostrar tus habilidades contra reloj.{`\n\n`}En este reto se distribuyen aleatoriamente ejercicios misceláneos de este nivel con una barra de tiempo de 2 min 30 seg.
+          <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+            Bienvenido al reto de dominio{`\n`}Ya que te dominado los 3 niveles de este reino, ahora tendrás que demostrar tus habilidades contra reloj.{`\n\n`}En el nivel distribuya aleatoriamente ejercicios de los 3 niveles de dificultad con una barra de tiempo de 2 min 30 seg.
           </p>
           <button
             onClick={() => setStarted(true)}
@@ -124,12 +164,15 @@ export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChall
   }
 
   if (result === 'success') {
+  if (timeLeft <= 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-sky-900 to-indigo-950 flex items-center justify-center p-4">
         <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 text-center">
           <div className="text-6xl mb-4">🏆</div>
           <h2 className="text-3xl font-bold text-indigo-700 mb-3">¡Reto superado!</h2>
           <p className="text-gray-700 mb-2">Precisión: <strong>{accuracy}%</strong> ({correctAnswers}/{answeredCount})</p>
+          <h2 className="text-3xl font-bold text-indigo-700 mb-3">¡Reto completado!</h2>
+          <p className="text-gray-700 mb-2">Respuestas correctas: <strong>{correctAnswers}</strong></p>
           <p className="text-gray-700 whitespace-pre-line leading-relaxed">
             Felicitaciones, maestro de la suma, has dominado el primer elemento, Aire; ahora se abrirán las puertas de la sala del conocimiento.
           </p>
@@ -179,6 +222,7 @@ export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChall
 
         <div className="bg-white rounded-3xl p-8 shadow-2xl text-center">
           <p className="text-sm text-gray-500 mb-2">Ejercicio misceláneo #{currentProblemIndex + 1}</p>
+          <p className="text-sm text-gray-500 mb-2">Ejercicio aleatorio #{currentProblemIndex + 1}</p>
           <div className="text-5xl font-bold text-gray-800 mb-8">{currentProblem?.question}</div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -203,4 +247,4 @@ export function DomainChallengeScreen({ level, onComplete, onFail }: DomainChall
       </div>
     </div>
   );
-}
+};
