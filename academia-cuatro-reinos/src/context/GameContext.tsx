@@ -5,7 +5,15 @@ import { GameContext, GameState, initialState } from './gameConstants';
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<GameState>(() => {
     const saved = localStorage.getItem('academiaGameState');
-    return saved ? JSON.parse(saved) : initialState;
+    if (!saved) return initialState;
+
+    const parsed = JSON.parse(saved);
+    return {
+      ...initialState,
+      ...parsed,
+      abilityUses: { ...initialState.abilityUses, ...(parsed.abilityUses || {}) },
+      operationMastery: { ...initialState.operationMastery, ...(parsed.operationMastery || {}) },
+    };
   });
 
   useEffect(() => {
@@ -212,6 +220,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       knowledgeRoomsCompleted: prev.knowledgeRoomsCompleted + 1
     }));
   };
+
 
   const setPlayerInfo = (name: string, avatar: string) => {
     setState(prev => ({
